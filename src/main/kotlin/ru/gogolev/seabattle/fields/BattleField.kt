@@ -53,10 +53,10 @@ class BattleField {
     }
 
     private fun checkBoundaries(point: Point): Boolean {
-        return (point.x in 0 until DEPTH) && (point.y in 0 until WIDTH) && (point.z in 0 until HEIGHT)
+        return (point.x in 0 until WIDTH) && (point.y in 0 until DEPTH) && (point.z in 0 until HEIGHT)
     }
 
-    private fun calculatePosition(p: Point) = ((p.x * WIDTH * HEIGHT) + (p.y * WIDTH) + p.z)
+    private fun calculatePosition(p: Point) = ((p.x * DEPTH * HEIGHT) + (p.y * WIDTH) + p.z)
 
     fun isAvailablePoint(p: Point): Boolean = get(p.x, p.y, p.z) == ObjectType.EMPTY
 }

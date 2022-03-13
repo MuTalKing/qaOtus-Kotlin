@@ -15,7 +15,7 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
         listOf(point.x - 1, point.x, point.x + 1).forEach { first ->
             listOf(point.y - 1, point.y, point.y + 1).forEach { second ->
                 listOf(point.z - 1, point.z, point.z + 1).forEach { third ->
-                    if (first in 0 until DEPTH && second in 0 until WIDTH && third in 0 until HEIGHT) {
+                    if (first in 0 until WIDTH && second in 0 until DEPTH && third in 0 until HEIGHT) {
                         points.add(Point(first, second, third))
                     }
                 }
@@ -32,8 +32,8 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
 
     fun generateRandomPosition(): Point {
         val x = Random.nextInt(0, WIDTH)
-        val y = Random.nextInt(0, HEIGHT)
-        val z = Random.nextInt(0, DEPTH)
+        val y = Random.nextInt(0, DEPTH)
+        val z = Random.nextInt(0, HEIGHT)
         return Point(x, y, z)
     }
 
@@ -65,9 +65,9 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
         val (x, y, z) = point
         return when (direction) {
             Direction.LEFT -> if (x > 0) Point(x - 1, y, z) else null
-            Direction.RIGHT -> if (x < DEPTH - 1) Point(x + 1, y, z) else null
+            Direction.RIGHT -> if (x < WIDTH - 1) Point(x + 1, y, z) else null
             Direction.BACK -> if (y > 0) Point(x, y - 1, z) else null
-            Direction.FORWARD -> if (y < WIDTH - 1) Point(x, y + 1, z) else null
+            Direction.FORWARD -> if (y < DEPTH - 1) Point(x, y + 1, z) else null
             Direction.UP -> if (z > 0) Point(x, y, z - 1) else null
             Direction.DOWN -> if (z < HEIGHT - 1) Point(x, y, z + 1) else null
         }
