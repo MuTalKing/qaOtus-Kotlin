@@ -1,3 +1,7 @@
+package ru.gogolev.seabattle.objects
+
+import ru.gogolev.seabattle.GameLoop
+
 abstract class GameObject(var x: Int, var y: Int, var z: Int) {
     abstract fun interact(x: Int, y: Int, z: Int, gameLoop: GameLoop)
 }
