@@ -1,43 +1,47 @@
+package ru.gogolev.seabattle.fields
+
+import ru.gogolev.seabattle.configuration.*
+import ru.gogolev.seabattle.objects.*
 import kotlin.random.Random
 import kotlin.reflect.KProperty
-
-
-const val MINES_COUNT = 6
-const val HELP_COUNT = 6
-const val SHIPS_LEN_1_COUNT = 6
-const val SHIPS_LEN_2_COUNT = 5
-const val SHIPS_LEN_3_COUNT = 4
-const val SHIPS_LEN_4_COUNT = 3
-
 
 class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
     var battleField: BattleField? = null
 
     // возвращает true, если есть соседи
-    fun checkNeighbors(d: Int, y: Int, x: Int): Boolean {
-        var sum = 0
-        for (dd in (if (d > 1) d - 1 else d)..(if (d < DEPTH - 1) d + 1 else d)) {
-            for (dy in (if (y > 1) y - 1 else y)..(if (y < HEIGHT - 1) y + 1 else y)) {
-                for (dx in (if (x > 1) x - 1 else x)..(if (x < WIDTH - 1) x + 1 else x)) {
-                    if (battleField!![dx, dy, dd] != ObjectType.EMPTY) sum++
+    fun checkNeighbors(point: Point): Boolean {
+        val points = mutableListOf<Point>()
+        var neighbors = false
+        listOf(point.x - 1, point.x, point.x + 1).forEach { first ->
+            listOf(point.y - 1, point.y, point.y + 1).forEach { second ->
+                listOf(point.z - 1, point.z, point.z + 1).forEach { third ->
+                    if (first in 0 until WIDTH && second in 0 until DEPTH && third in 0 until HEIGHT) {
+                        points.add(Point(first, second, third))
+                    }
                 }
             }
         }
-        return sum != 0
+        for (point in points) {
+            if (!battleField!!.isAvailablePoint(point)) {
+                neighbors = true
+                break
+            }
+        }
+        return neighbors
     }
 
-    fun generateRandomPosition(): Triple<Int, Int, Int> {
+    fun generateRandomPosition(): Point {
         val x = Random.nextInt(0, WIDTH)
-        val y = Random.nextInt(0, HEIGHT)
-        val z = Random.nextInt(0, DEPTH)
-        return Triple(x, y, z)
+        val y = Random.nextInt(0, DEPTH)
+        val z = Random.nextInt(0, HEIGHT)
+        return Point(x, y, z)
     }
 
     fun propagateMines() {
         var mine = 0
         while (mine < MINES_COUNT) {
             val (x, y, z) = generateRandomPosition()
-            if (!checkNeighbors(x, y, z)) {
+            if (!checkNeighbors(Point(x, y, z))) {
                 gameObjects.add(MineObject(x, y, z))
                 battleField!![x, y, z] = ObjectType.MINE
                 mine++
@@ -49,7 +53,7 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
         var mine = 0
         while (mine < HELP_COUNT) {
             val (x, y, z) = generateRandomPosition()
-            if (!checkNeighbors(x, y, z)) {
+            if (!checkNeighbors(Point(x, y, z))) {
                 gameObjects.add(HelpObject(x, y, z))
                 battleField!![x, y, z] = ObjectType.HELP
                 mine++
@@ -57,14 +61,15 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
         }
     }
 
-    private fun nextPos(x: Int, y: Int, z: Int, direction: Direction): Triple<Int, Int, Int>? {
+    private fun nextPos(point: Point, direction: Direction): Point? {
+        val (x, y, z) = point
         return when (direction) {
-            Direction.LEFT -> if (x > 0) Triple(x - 1, y, z) else null
-            Direction.RIGHT -> if (x < WIDTH - 1) Triple(x + 1, y, z) else null
-            Direction.UP -> if (y > 0) Triple(x, y - 1, z) else null
-            Direction.DOWN -> if (y < HEIGHT - 1) Triple(x, y + 1, z) else null
-            Direction.TO_THE_SURFACE -> if (z > 0) Triple(x, y, z - 1) else null
-            Direction.DEEP_INTO -> if (z < DEPTH - 1) Triple(x, y, z + 1) else null
+            Direction.LEFT -> if (x > 0) Point(x - 1, y, z) else null
+            Direction.RIGHT -> if (x < WIDTH - 1) Point(x + 1, y, z) else null
+            Direction.BACK -> if (y > 0) Point(x, y - 1, z) else null
+            Direction.FORWARD -> if (y < DEPTH - 1) Point(x, y + 1, z) else null
+            Direction.UP -> if (z > 0) Point(x, y, z - 1) else null
+            Direction.DOWN -> if (z < HEIGHT - 1) Point(x, y, z + 1) else null
         }
     }
 
@@ -74,11 +79,11 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
         var cz = z
         for (i in 1..len) {
             battleField!![cx, cy, cz] = type
-            val l = nextPos(x, y, z, direction)
+            val l = nextPos(Point(cx, cy, cz), direction)
             l?.let {
-                cx = l.first
-                cy = l.second
-                cz = l.third
+                cx = l.x
+                cy = l.y
+                cz = l.z
             }
         }
     }
@@ -89,14 +94,14 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
         var cy = y
         var cz = z
         for (i in 1..len) {
-            if (checkNeighbors(cx, cy, cz)) {
+            if (checkNeighbors(Point(cx, cy, cz))) {
                 return false
             }
-            val l = nextPos(cx, cy, cz, direction) ?: return false                  //попали в стенку
+            val l = nextPos(Point(cx, cy, cz), direction) ?: return false                  //попали в стенку
             //продолжаем заполнение
-            cx = l.first
-            cy = l.second
-            cz = l.third
+            cx = l.x
+            cy = l.y
+            cz = l.z
         }
         return true
     }
