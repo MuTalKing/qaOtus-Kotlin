@@ -10,3 +10,5 @@ const val SHIPS_LEN_1_COUNT = 8
 const val SHIPS_LEN_2_COUNT = 8
 const val SHIPS_LEN_3_COUNT = 0
 const val SHIPS_LEN_4_COUNT = 2
+
+const val NEW_GAME = true

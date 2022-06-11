@@ -3,7 +3,9 @@ package ru.gogolev.seabattle.fields
 import ru.gogolev.seabattle.configuration.DEPTH
 import ru.gogolev.seabattle.configuration.HEIGHT
 import ru.gogolev.seabattle.configuration.WIDTH
+import ru.gogolev.seabattle.configuration.NEW_GAME
 import ru.gogolev.seabattle.objects.ObjectType
+import ru.gogolev.seabattle.utils.DbUtils
 
 fun BattleField.renderLine(y: Int, z: Int): String {
     var line = ""
@@ -37,8 +39,16 @@ fun BattleField.render() {
 
 
 /** Игровое поле - переопределены операторы get/set для работы с эмуляцией трехмерного массива */
-class BattleField {
-    var field = Array<ObjectType>(DEPTH * WIDTH * HEIGHT, init = { ObjectType.EMPTY })
+class BattleField(depth: Int = DEPTH, width: Int = WIDTH, height: Int = HEIGHT) {
+    private val dbUtils = DbUtils()
+    private var field = Array(depth * width * height, init = { ObjectType.EMPTY})
+
+    fun prepareBattleField(){
+        val objects = dbUtils.selectAllObjectTypes()
+        objects.forEach {
+            field[calculatePosition(Point(it.x, it.y, it.z))] = it.objectType
+        }
+    }
 
     operator fun get(x: Int, y: Int, z: Int): ObjectType {
         if (checkBoundaries(Point(x, y, z))) {
@@ -49,6 +59,10 @@ class BattleField {
     operator fun set(x: Int, y: Int, z: Int, v: ObjectType) {
         if (checkBoundaries(Point(x, y, z)) && isAvailablePoint(Point(x, y, z))) {
             field[calculatePosition(Point(x, y, z))] = v
+            if(NEW_GAME) {
+                dbUtils.createDb()
+                dbUtils.insertObjectType(x, y, z, v)
+            }
         } else throw IllegalArgumentException("set incorrect position: $x,$y,$z $v")
     }
 

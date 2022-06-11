@@ -2,6 +2,7 @@ package ru.gogolev.seabattle.fields
 
 import ru.gogolev.seabattle.configuration.*
 import ru.gogolev.seabattle.objects.*
+import ru.gogolev.seabattle.utils.DbFileUtils
 import kotlin.random.Random
 import kotlin.reflect.KProperty
 
@@ -127,17 +128,25 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
     }
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): BattleField {
+        val dbFileUtils = DbFileUtils()
         if (battleField == null) {
             //заполнить поле случайным расположением
             battleField = BattleField()
             //заполняем объектами
-            println("Mines")
-            propagateMines()
-            println("Helps")
-            propogateHelp()
-            println("Ships")
-            propogateShips()
-            println("Battle field is filled")
+            if(NEW_GAME) {
+                dbFileUtils.createDirectory()
+                println("Mines")
+                propagateMines()
+                println("Helps")
+                propogateHelp()
+                println("Ships")
+                propogateShips()
+                println("Battle field is filled")
+                dbFileUtils.backupData()
+            }
+            else{
+                battleField!!.prepareBattleField()
+            }
         }
         return battleField!!
     }
