@@ -6,7 +6,7 @@ import ru.gogolev.seabattle.utils.DbFileUtils
 import kotlin.random.Random
 import kotlin.reflect.KProperty
 
-class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
+class BattleFieldDelegate(val gameObjects: MutableList<GameObject>, var isNewGame: Boolean = NEW_GAME) {
     var battleField: BattleField? = null
 
     // возвращает true, если есть соседи
@@ -133,7 +133,7 @@ class BattleFieldDelegate(val gameObjects: MutableList<GameObject>) {
             //заполнить поле случайным расположением
             battleField = BattleField()
             //заполняем объектами
-            if(NEW_GAME) {
+            if(isNewGame) {
                 dbFileUtils.createDirectory()
                 println("Mines")
                 propagateMines()
